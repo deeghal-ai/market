@@ -1,0 +1,364 @@
+/* AutoMarket Pro - AD Ports Group Inspired Theme */
+
+/* CSS Custom Properties */
+:root {
+  --color-navy: #1a2b4a;
+  --color-navy-dark: #0f1a2e;
+  --color-navy-light: #2d4a6f;
+  --color-accent-green: #22c55e;
+  --color-accent-yellow: #eab308;
+  --color-accent-red: #ef4444;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-white: #ffffff;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Base Styles */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Utility Classes */
+.bg-navy {
+  background-color: var(--color-navy);
+}
+
+.bg-navy-dark {
+  background-color: var(--color-navy-dark);
+}
+
+.text-navy {
+  color: var(--color-navy);
+}
+
+.border-navy {
+  border-color: var(--color-navy);
+}
+
+.hover\:bg-navy:hover {
+  background-color: var(--color-navy);
+}
+
+/* Button Styles */
+.btn-primary {
+  background-color: var(--color-navy);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-navy-dark);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--color-navy);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-gray-300);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-navy);
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-used {
+  background-color: var(--color-navy);
+  color: white;
+}
+
+.badge-excellent {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge-like-new {
+  background-color: #22c55e;
+  color: white;
+}
+
+.badge-good {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge-verified {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-300);
+}
+
+.badge-regional {
+  background-color: white;
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-300);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+}
+
+/* Rating Star */
+.rating-star {
+  color: var(--color-accent-yellow);
+}
+
+/* Filter Select Dropdown */
+.filter-select {
+  appearance: none;
+  background-color: white;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.375rem;
+  padding: 0.625rem 2rem 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--color-gray-700);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--color-navy);
+  box-shadow: 0 0 0 2px rgba(26, 43, 74, 0.1);
+}
+
+/* Table Styles */
+.table-header {
+  background-color: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.table-header th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  font-size: 0.875rem;
+}
+
+.table-row {
+  border-bottom: 1px solid var(--color-gray-200);
+  transition: background-color 0.15s;
+}
+
+.table-row:hover {
+  background-color: var(--color-gray-50);
+}
+
+/* Card Styles */
+.card {
+  background-color: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 0.5rem;
+}
+
+.card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-gray-200);
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+/* Image Placeholder */
+.image-placeholder {
+  background: linear-gradient(135deg, var(--color-gray-200) 0%, var(--color-gray-300) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-400);
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+/* Navigation Styles */
+.nav-link {
+  color: var(--color-gray-700);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  transition: color 0.15s;
+}
+
+.nav-link:hover {
+  color: var(--color-navy);
+}
+
+/* Toggle Button Group */
+.toggle-group {
+  display: inline-flex;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-gray-600);
+  background: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.toggle-btn.active {
+  background-color: var(--color-navy);
+  color: white;
+}
+
+.toggle-btn:not(:last-child) {
+  border-right: 1px solid var(--color-gray-300);
+}
+
+/* Spec Item */
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+.spec-icon {
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+}
+
+.spec-label {
+  color: var(--color-gray-500);
+  font-size: 0.875rem;
+  flex: 1;
+}
+
+.spec-value {
+  font-weight: 600;
+  color: var(--color-gray-800);
+  font-size: 0.875rem;
+}
+
+/* Price Display */
+.price-large {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-navy);
+}
+
+.price-strikethrough {
+  text-decoration: line-through;
+  color: var(--color-gray-400);
+  font-size: 0.875rem;
+}
+
+/* Seller Card */
+.seller-card {
+  background-color: var(--color-gray-50);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+}
+
+.seller-name {
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.seller-address {
+  font-size: 0.875rem;
+  color: var(--color-gray-500);
+  margin-top: 0.25rem;
+}
+
+/* Shipping Options Card */
+.shipping-card {
+  background-color: var(--color-gray-50);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+}
+
+.shipping-card label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  margin-bottom: 0.375rem;
+}
+
+.shipping-card select {
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 0.375rem;
+  background-color: white;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Verified Badge Inline */
+.verified-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #22c55e;
+  font-size: 0.75rem;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
