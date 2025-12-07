@@ -34,6 +34,9 @@ const MAKE_ALIASES = {
   'Range Rover': 'Land Rover', // Range Rover is a Land Rover model
 };
 
+// Helper function to escape special regex characters
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&');
+
 /**
  * Detect if a column likely contains combined Make+Model data
  * @param {string[]} sampleValues - Array of sample values from the column
@@ -50,12 +53,13 @@ export const detectCombinedMakeModel = (sampleValues) => {
   // Check each value for known makes
   sampleValues.forEach(value => {
     if (!value || typeof value !== 'string') return;
-    
+
     const normalizedValue = value.trim();
-    
+
     for (const make of KNOWN_MAKES) {
-      // Check if the value starts with the make name (case insensitive)
-      const regex = new RegExp(`^${make}\\b`, 'i');
+      // Check if the value contains the make name anywhere (case insensitive)
+      // This catches both standard (Audi A6) and inverted (GAC Honda) patterns
+      const regex = new RegExp(`\\b${escapeRegex(make)}\\b`, 'i');
       if (regex.test(normalizedValue)) {
         detectedMakes.add(make);
         matchCount++;
@@ -65,7 +69,7 @@ export const detectCombinedMakeModel = (sampleValues) => {
   });
 
   const confidence = matchCount / sampleValues.filter(v => v).length;
-  
+
   return {
     isCombined: confidence > 0.3, // If 30%+ values contain known makes, it's likely combined
     confidence,
@@ -73,9 +77,16 @@ export const detectCombinedMakeModel = (sampleValues) => {
   };
 };
 
+// Chinese joint venture parent company names (these prefix the actual make)
+const PARENT_COMPANIES = [
+  'GAC', 'SAIC', 'FAW', 'Dongfeng', 'BAIC', 'Changan', 'Brilliance', 'Beijing',
+  'Guangzhou', 'Shanghai', 'Geely', 'Great Wall', 'Chery', 'BYD',
+];
+
 /**
  * Split a combined Make+Model value into separate parts
- * @param {string} value - The combined value like "Volkswagen Tiguan L 2017 330TSI"
+ * Handles both standard ("Audi A6") and inverted ("GAC Honda") patterns
+ * @param {string} value - The combined value like "Volkswagen Tiguan L 2017 330TSI" or "GAC Honda"
  * @returns {Object} - { make, model, variant, year }
  */
 export const splitMakeModel = (value) => {
@@ -86,12 +97,14 @@ export const splitMakeModel = (value) => {
   const trimmed = value.trim();
   let make = '';
   let remainder = trimmed;
+  let parentCompany = '';
 
   // Find the make by checking against known makes (longest match first)
   const sortedMakes = [...KNOWN_MAKES].sort((a, b) => b.length - a.length);
-  
+
+  // First, try to find make at the START of the string (standard pattern)
   for (const knownMake of sortedMakes) {
-    const regex = new RegExp(`^${knownMake}\\b`, 'i');
+    const regex = new RegExp(`^${escapeRegex(knownMake)}\\b`, 'i');
     const match = trimmed.match(regex);
     if (match) {
       make = MAKE_ALIASES[match[0]] || match[0];
@@ -104,6 +117,56 @@ export const splitMakeModel = (value) => {
     }
   }
 
+  // If no make found at start, check for INVERTED pattern (e.g., "GAC Honda", "SAIC Volkswagen")
+  // In these cases, a parent company comes first, then the known make
+  if (!make) {
+    // Check if first word is a parent company
+    const firstWord = trimmed.split(/\s+/)[0];
+    const isParentCompany = PARENT_COMPANIES.some(p =>
+      firstWord.toLowerCase() === p.toLowerCase()
+    );
+
+    if (isParentCompany) {
+      parentCompany = firstWord;
+      const afterParent = trimmed.slice(firstWord.length).trim();
+
+      // Now look for a known make in the remainder
+      for (const knownMake of sortedMakes) {
+        const regex = new RegExp(`^${escapeRegex(knownMake)}\\b`, 'i');
+        const match = afterParent.match(regex);
+        if (match) {
+          make = MAKE_ALIASES[match[0]] || match[0];
+          make = make.charAt(0).toUpperCase() + make.slice(1).toLowerCase();
+          if (make === 'Vw') make = 'Volkswagen';
+          if (make === 'Bmw') make = 'BMW';
+          remainder = afterParent.slice(match[0].length).trim();
+          break;
+        }
+      }
+    }
+
+    // If still no make found, try finding a known make ANYWHERE in the string
+    if (!make) {
+      for (const knownMake of sortedMakes) {
+        const regex = new RegExp(`\\b${escapeRegex(knownMake)}\\b`, 'i');
+        const match = trimmed.match(regex);
+        if (match) {
+          make = MAKE_ALIASES[match[0]] || match[0];
+          make = make.charAt(0).toUpperCase() + make.slice(1).toLowerCase();
+          if (make === 'Vw') make = 'Volkswagen';
+          if (make === 'Bmw') make = 'BMW';
+          // Everything before the make becomes part of model/variant consideration
+          const beforeMake = trimmed.slice(0, match.index).trim();
+          const afterMake = trimmed.slice(match.index + match[0].length).trim();
+          // If there's content after the make, that's the model
+          // Otherwise, content before (excluding parent company) could be the model
+          remainder = afterMake || beforeMake;
+          break;
+        }
+      }
+    }
+  }
+
   // Try to extract year (4-digit number between 1990-2030)
   let year = '';
   const yearMatch = remainder.match(/\b(19[9][0-9]|20[0-3][0-9])\b/);
@@ -113,9 +176,18 @@ export const splitMakeModel = (value) => {
     remainder = remainder.replace(yearMatch[0], '').trim();
   }
 
+  // Also check for year with decimal (like "2022.6" meaning June 2022)
+  if (!year) {
+    const yearDecimalMatch = remainder.match(/\b(19[9][0-9]|20[0-3][0-9])\.\d+/);
+    if (yearDecimalMatch) {
+      year = yearDecimalMatch[0].split('.')[0];
+      remainder = remainder.replace(yearDecimalMatch[0], '').trim();
+    }
+  }
+
   // The first word after make is typically the model
   // Everything else is variant
-  const parts = remainder.split(/\s+/);
+  const parts = remainder.split(/\s+/).filter(p => p);
   const model = parts[0] || '';
   const variant = parts.slice(1).join(' ');
 
@@ -138,7 +210,7 @@ export const splitCombinedColumn = (rawData, combinedColumn, existingMapping) =>
   return rawData.map(row => {
     const combinedValue = row[combinedColumn];
     const split = splitMakeModel(combinedValue);
-    
+
     return {
       ...row,
       // Add virtual columns for split data
@@ -166,7 +238,7 @@ export const extractColorFromDescription = (description) => {
   ];
 
   const normalizedDesc = description.toLowerCase();
-  
+
   for (const color of colors) {
     if (normalizedDesc.includes(color.toLowerCase())) {
       return color;
@@ -212,7 +284,7 @@ export const analyzeColumnsForCombinedData = (rawData, columns) => {
   return columns.map(col => {
     const samples = getSampleValues(rawData, col);
     const analysis = detectCombinedMakeModel(samples);
-    
+
     return {
       column: col,
       ...analysis,
