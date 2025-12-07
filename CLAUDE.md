@@ -524,11 +524,96 @@ tailwind.config = {
 
 ### Component Updates Summary
 
-| File | Changes |
-|------|---------|
 | `App.jsx` | New header with logo, nav, Search/Cart/Profile icons |
 | `FilterPanel.jsx` | Horizontal layout, Search button, Advanced Filters, Clear All |
 | `ListingsTable.jsx` | New columns, condition badges, seller column, regional specs, styled actions |
 | `ListingDetailModal.jsx` | Two-column layout, image gallery, shipping options, vehicle specs grid |
 | `FileUpload.jsx` | Navy color scheme |
 | `ColumnMapping.jsx` | Navy theme, consistent button styling |
+
+---
+
+## 🔀 Smart Split Feature (December 2024)
+
+### Overview
+Dealers upload Excel files with **inconsistent formats** - sometimes "Make" and "Model" are in separate columns, sometimes combined like "Audi A6" or "Volkswagen Tiguan L 2017 330TSI". Smart Split auto-detects and splits these combined columns.
+
+### New Files Added
+
+#### `/src/utils/smartSplit.js`
+Core splitting logic:
+- `KNOWN_MAKES` - List of 80+ car manufacturers (German, Japanese, Korean, American, European, British, Italian, Chinese)
+- `detectCombinedMakeModel(sampleValues)` - Returns `{ isCombined, confidence, detectedMakes }`
+- `splitMakeModel(value)` - Splits "Audi A6" → `{ make: "Audi", model: "A6", variant: "", year: "" }`
+- `extractColorFromDescription(description)` - Extracts color from vehicle descriptions
+- `getSampleValues(rawData, columnName)` - Get sample values for analysis
+
+### Modified Files
+
+#### `/src/constants/standardFields.js`
+Added `combined` field category:
+```javascript
+combined: [
+  { key: 'combined_make_model', label: '🔀 Make + Model (Combined)', splitsTo: ['make', 'model'] },
+  { key: 'combined_make_model_variant', label: '🔀 Make + Model + Variant (Combined)', splitsTo: ['make', 'model', 'variant'] },
+  { key: 'combined_full_description', label: '🔀 Full Vehicle Description', splitsTo: ['variant', 'color'] },
+]
+```
+Helper functions: `isCombinedField()`, `getCombinedFieldInfo()`, `getAllFieldsWithCombined()`
+
+#### `/src/utils/columnSynonyms.js`
+- Improved `autoDetectMapping()` with **scoring system** for better matches:
+  - Exact match: 100 points
+  - First word match: 75-80 points
+  - Contains match: 50 + length
+  - Reverse contains: 30 + length
+- Added `mightBeCombinedColumn()` helper
+
+#### `/src/utils/groupingLogic.js`
+- Added `processCombinedFields(row, mapping)` - Splits combined fields during transformation
+- Updated `transformToVehicles()` to handle combined fields
+- Normalizes year (extracts from formulas like "=2022")
+- Normalizes mileage (converts 14 → 14000 if too low)
+
+#### `/src/components/ColumnMapping.jsx`
+- Accepts `rawData` prop for analysis
+- Column analysis with `useMemo` to detect combined data
+- **Blue highlight** for columns with detected combined data
+- **Green highlight** when smart split is active
+- **Preview extraction** shows Make, Model, Variant, Year before import
+- **Legend** at bottom explaining colors
+- `getFilledRequiredFields()` - Marks fields as filled based on verified extraction
+
+#### `/src/App.jsx`
+- Passes `rawData` to `ColumnMapping`
+- `handleMappingChange` allows multiple combined field mappings
+
+### How Smart Split Works
+
+```
+User uploads Excel with column "Model" containing:
+┌────────────────────────────────────────┐
+│ "Volkswagen Tiguan L 2017 330TSI"      │
+└────────────────────────────────────────┘
+                    ↓
+System analyzes sample values, detects "Volkswagen" as known make
+                    ↓
+Column highlighted BLUE: "Combined data detected"
+                    ↓
+User selects: "🔀 Make + Model + Variant (Combined)"
+                    ↓
+Preview shows (GREEN highlight):
+  Make: Volkswagen → Model: Tiguan → Variant: L 330TSI → Year: 2017
+                    ↓
+Required fields auto-update (year marked as filled if extracted)
+                    ↓
+Import creates properly split data
+```
+
+### Key Design Decisions
+
+1. **Data-Driven Verification**: Year is only marked as "filled" if actually extracted from samples
+2. **Graceful Fallback**: Users can always manually map columns if detection fails
+3. **Smart Split options available to all columns**, not just detected ones
+4. **Scoring-based matching** prevents ambiguous auto-mapping (e.g., "Engine" → Engine Size, not Fuel Type)
+

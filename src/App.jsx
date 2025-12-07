@@ -60,12 +60,14 @@ function App() {
   const handleMappingChange = (column, field) => {
     setMapping(prev => {
       const updated = { ...prev };
-      // Remove field from other columns if already mapped
-      Object.keys(updated).forEach(key => {
-        if (updated[key] === field && key !== column) {
-          delete updated[key];
-        }
-      });
+      // Remove field from other columns if already mapped (except for combined fields)
+      if (field && !field.startsWith('combined_')) {
+        Object.keys(updated).forEach(key => {
+          if (updated[key] === field && key !== column) {
+            delete updated[key];
+          }
+        });
+      }
       if (field) {
         updated[column] = field;
       } else {
@@ -221,6 +223,7 @@ function App() {
             <ColumnMapping
               columns={columns}
               mapping={mapping}
+              rawData={rawData}
               onMappingChange={handleMappingChange}
               onConfirm={handleConfirmMapping}
               onCancel={handleReset}

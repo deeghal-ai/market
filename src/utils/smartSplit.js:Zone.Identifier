@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://claude.ai/chat/6458ba72-63b5-4cdc-a535-1e996568479b
+HostUrl=https://claude.ai/api/organizations/535abf7b-aed1-4748-b8ed-8f32448544cd/conversations/6458ba72-63b5-4cdc-a535-1e996568479b/wiggle/download-file?path=%2Fmnt%2Fuser-data%2Foutputs%2Fsrc%2Futils%2FsmartSplit.js
